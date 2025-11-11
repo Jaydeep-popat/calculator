@@ -1,4 +1,5 @@
 import styles from './Panel.module.css';
+import RippleButton from './RippleButton';
 
 interface ScientificPanelProps {
   onAppend: (char: string) => void;
@@ -34,21 +35,21 @@ export default function ScientificPanel({
   return (
     <div className={`${styles.grid} ${styles.sci}`} aria-label="Scientific keys">
       {/* Row 1 */}
-      <button className={styles.muted} onClick={onClear}>
+      <RippleButton className={styles.muted} onClick={onClear} rippleColor="rgba(148, 163, 184, 0.5)">
         AC
-      </button>
-      <button className={styles.danger} onClick={onBackspace}>
+      </RippleButton>
+      <RippleButton className={styles.danger} onClick={onBackspace} rippleColor="rgba(253, 164, 175, 0.5)">
         DEL
-      </button>
-      <button onClick={onMemoryClear} title="Memory Clear">
+      </RippleButton>
+      <RippleButton onClick={onMemoryClear} title="Memory Clear">
         MC
-      </button>
-      <button onClick={onMemoryRecall} title="Memory Recall">
+      </RippleButton>
+      <RippleButton onClick={onMemoryRecall} title="Memory Recall">
         MR
-      </button>
-      <button onClick={onAns} title="Insert previous answer">
+      </RippleButton>
+      <RippleButton onClick={onAns} title="Insert previous answer">
         Ans
-      </button>
+      </RippleButton>
 
       {/* Row 2 */}
       <button onClick={() => onAppend('(')}>(</button>
@@ -98,26 +99,27 @@ export default function ScientificPanel({
         −
       </button>
 
-      <button onClick={() => onAppend('4')}>4</button>
-      <button onClick={() => onAppend('5')}>5</button>
-      <button onClick={() => onAppend('6')}>6</button>
-      <button className={styles.op} onClick={() => onAppend('+')} title="Plus">
+      {/* Row 6 (final row) */}
+      <RippleButton onClick={() => onAppend('4')}>4</RippleButton>
+      <RippleButton onClick={() => onAppend('5')}>5</RippleButton>
+      <RippleButton onClick={() => onAppend('6')}>6</RippleButton>
+      <RippleButton className={styles.op} onClick={() => onAppend('+')} title="Plus" rippleColor="rgba(167, 139, 250, 0.6)">
         +
-      </button>
-      <button className={styles.op} onClick={() => onAppend('%')} title="Percent">
+      </RippleButton>
+      <RippleButton className={styles.op} onClick={() => onAppend('%')} title="Percent" rippleColor="rgba(167, 139, 250, 0.6)">
         %
-      </button>
+      </RippleButton>
 
-      <button onClick={() => onAppend('1')}>1</button>
-      <button onClick={() => onAppend('2')}>2</button>
-      <button onClick={() => onAppend('3')}>3</button>
-      <button className={styles.span2} onClick={() => onAppend('0')}>
+      <RippleButton onClick={() => onAppend('1')}>1</RippleButton>
+      <RippleButton onClick={() => onAppend('2')}>2</RippleButton>
+      <RippleButton onClick={() => onAppend('3')}>3</RippleButton>
+      <RippleButton className={styles.span2} onClick={() => onAppend('0')}>
         0
-      </button>
-      <button onClick={() => onAppend('.')}>.</button>
-      <button className={styles.equal} onClick={onEquals} title="Equals (Enter)">
+      </RippleButton>
+      <RippleButton onClick={() => onAppend('.')}>.</RippleButton>
+      <RippleButton className={styles.equal} onClick={onEquals} title="Equals (Enter)" rippleColor="rgba(11, 16, 32, 0.8)">
         =
-      </button>
+      </RippleButton>
     </div>
   );
 }

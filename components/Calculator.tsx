@@ -18,6 +18,7 @@ export default function Calculator() {
     memory: 0,
     lastAnswer: 0,
   });
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Keyboard support
   useEffect(() => {
@@ -54,6 +55,10 @@ export default function Calculator() {
   const append = (char: string) => {
     const cur = state.result === '0' ? '' : state.result;
     const last = cur.slice(-1);
+    const lastTwo = cur.slice(-2);
+
+    // Prevent expressions that are too long
+    if (cur.length > 200) return;
 
     // Prevent two operators in a row (replace instead)
     if (ops.has(char)) {
@@ -62,12 +67,49 @@ export default function Calculator() {
         setResult(cur.slice(0, -1) + char);
         return;
       }
+      // Prevent operator after opening parenthesis (except minus for negative numbers)
+      if (last === '(' && char !== '-') return;
     }
 
     // Single dot per number chunk
     if (char === '.') {
-      const chunk = cur.split(/[-+*/^]/).pop() || '';
-      if (chunk.includes('.')) return;
+      // Don't allow dot after operators
+      if (ops.has(last) || last === '(') return;
+      
+      // Find the last complete number to check for existing decimal
+      const match = cur.match(/(\d+\.?\d*)$/);
+      if (match && match[0].includes('.')) return;
+      
+      // Don't allow multiple consecutive dots
+      if (last === '.') return;
+    }
+
+    // Prevent invalid sequences
+    if (char === '(') {
+      // Add multiplication before ( if needed
+      if (/[\d)πℯ]$/.test(cur)) {
+        setResult(cur + '*' + char);
+        return;
+      }
+    }
+
+    if (char === ')') {
+      // Don't allow ) if no matching (
+      const openParens = (cur.match(/\(/g) || []).length;
+      const closeParens = (cur.match(/\)/g) || []).length;
+      if (openParens <= closeParens) return;
+      
+      // Don't allow ) immediately after operators or (
+      if (ops.has(last) || last === '(') return;
+    }
+
+    // Handle digits
+    if (/\d/.test(char)) {
+      // Add multiplication before digits if needed after ) or constants
+      if (/[)πℯ]$/.test(cur)) {
+        setResult(cur + '*' + char);
+        return;
+      }
     }
 
     setResult((cur + char) || '0');
@@ -92,13 +134,43 @@ export default function Calculator() {
 
   const insertFn = (name: string) => {
     const cur = state.result === '0' ? '' : state.result;
+    
+    // Prevent expressions that are too long
+    if (cur.length > 190) return;
+    
+    const last = cur.slice(-1);
     const needsMul = /[\d)πℯ]$/.test(cur);
+    
+    // Validate function name
+    const validFunctions = ['sin', 'cos', 'tan', 'ln', 'log', 'sqrt'];
+    if (!validFunctions.includes(name)) return;
+    
+    // Don't insert function after operators (except for negative)
+    if (ops.has(last) && last !== '-' && cur !== '') {
+      return;
+    }
+    
     setResult(cur + (needsMul ? '*' : '') + name + '(');
   };
 
   const insertConst = (sym: string) => {
     const cur = state.result === '0' ? '' : state.result;
+    
+    // Prevent expressions that are too long
+    if (cur.length > 190) return;
+    
+    const last = cur.slice(-1);
     const needsMul = /[\d)πℯ]$/.test(cur);
+    
+    // Validate constant symbol
+    const validConstants = ['π', 'ℯ'];
+    if (!validConstants.includes(sym)) return;
+    
+    // Don't insert constant after operators (except for negative)
+    if (ops.has(last) && last !== '-' && cur !== '') {
+      return;
+    }
+    
     setResult((needsMul ? cur + '*' : cur) + sym);
   };
 
@@ -119,44 +191,83 @@ export default function Calculator() {
 
   const square = () => {
     const cur = state.result;
+    if (!cur || cur === '0') return;
+    
+    // Prevent expressions that are too long
+    if (cur.length > 180) return;
+    
     const m = cur.match(/(\([^()]*\)|\d+\.?\d*|π|ℯ)$/);
     if (!m) return;
-    setResult(cur.replace(/(\([^()]*\)|\d+\.?\d*|π|ℯ)$/, '($1)^2'));
+    
+    const target = m[0];
+    const replacement = target.length === 1 ? target + '^2' : '(' + target + ')^2';
+    setResult(cur.replace(/(\([^()]*\)|\d+\.?\d*|π|ℯ)$/, replacement));
   };
 
   const sqrt = () => {
     const cur = state.result;
+    
+    // Prevent expressions that are too long
+    if (cur.length > 180) return;
+    
     const m = cur.match(/(\([^()]*\)|\d+\.?\d*|π|ℯ)$/);
     if (!m) {
       insertFn('sqrt');
       return;
     }
-    setResult(cur.replace(/(\([^()]*\)|\d+\.?\d*|π|ℯ)$/, 'sqrt($1)'));
+    
+    const target = m[0];
+    setResult(cur.replace(/(\([^()]*\)|\d+\.?\d*|π|ℯ)$/, 'sqrt(' + target + ')'));
   };
 
   const factorial = () => {
     const cur = state.result;
+    if (!cur || cur === '0') return;
+    
+    // Prevent expressions that are too long
+    if (cur.length > 190) return;
+    
     const m = cur.match(/(\([^()]*\)|\d+\.?\d*|π|ℯ)$/);
     if (!m) return;
+    
+    // Check if we're already at the end of a factorial chain
+    if (cur.endsWith('!')) return;
+    
     setResult(cur + '!');
   };
 
   const preprocess = (expr: string): string => {
-    if (!/^[-+*/^().,%\d\sπℯa-zA-Z]+$/.test(expr))
-      throw new Error('Invalid expression');
+    // Enhanced validation for allowed characters
+    if (!/^[-+*/^().,%\d\sπℯa-zA-Z!]+$/.test(expr))
+      throw new Error('Invalid characters in expression');
 
+    // Check for balanced parentheses
+    let parenCount = 0;
+    for (const char of expr) {
+      if (char === '(') parenCount++;
+      else if (char === ')') parenCount--;
+      if (parenCount < 0) throw new Error('Unbalanced parentheses');
+    }
+    if (parenCount !== 0) throw new Error('Unbalanced parentheses');
+
+    // Replace special symbols and operators
     expr = expr.replace(/%/g, '/100');
     expr = expr.replace(/π/g, 'Math.PI');
     expr = expr.replace(/ℯ/g, 'Math.E');
     expr = expr.replace(/\^/g, '**');
 
-    while (/(\([^()]*\)|\d+\.?\d*|Math\.PI|Math\.E)!/.test(expr)) {
+    // Handle factorial operations - process from right to left to handle nested factorials
+    let factorialProcessed = false;
+    do {
+      const originalExpr = expr;
       expr = expr.replace(
         /(\([^()]*\)|\d+\.?\d*|Math\.PI|Math\.E)!/g,
         'FACT($1)'
       );
-    }
+      factorialProcessed = originalExpr !== expr;
+    } while (factorialProcessed);
 
+    // Replace function names with uppercase versions for the safe eval context
     expr = expr
       .replace(/\bsin\(/g, 'SIN(')
       .replace(/\bcos\(/g, 'COS(')
@@ -164,6 +275,16 @@ export default function Calculator() {
       .replace(/\bln\(/g, 'LN(')
       .replace(/\blog\(/g, 'LOG(')
       .replace(/\bsqrt\(/g, 'Math.sqrt(');
+
+    // Check for common invalid patterns
+    if (/\*\*/g.test(expr.replace(/\*\*[^*]/g, ''))) {
+      throw new Error('Invalid power operation');
+    }
+    
+    // Check for empty parentheses
+    if (/\(\s*\)/.test(expr)) {
+      throw new Error('Empty parentheses not allowed');
+    }
 
     return expr;
   };
@@ -174,42 +295,101 @@ export default function Calculator() {
     const SIN = (x: number) => Math.sin(RAD ? x : toRad(x));
     const COS = (x: number) => Math.cos(RAD ? x : toRad(x));
     const TAN = (x: number) => Math.tan(RAD ? x : toRad(x));
-    const LN = (x: number) => Math.log(x);
-    const LOG = (x: number) => Math.log10(x);
+    const LN = (x: number) => {
+      if (x <= 0) throw new Error('Natural log of non-positive number');
+      return Math.log(x);
+    };
+    const LOG = (x: number) => {
+      if (x <= 0) throw new Error('Log of non-positive number');
+      return Math.log10(x);
+    };
     const FACT = (n: number) => {
       if (!Number.isFinite(n) || n < 0 || Math.floor(n) !== n)
         throw new Error('Invalid factorial');
+      if (n > 170) throw new Error('Factorial too large');
       let r = 1;
       for (let i = 2; i <= n; i++) r *= i;
       return r;
     };
 
+    // Create a safe evaluation context with all required functions
+    const context = {
+      Math,
+      SIN,
+      COS,
+      TAN,
+      LN,
+      LOG,
+      FACT,
+      Infinity,
+      NaN,
+      isFinite: Number.isFinite,
+      isNaN: Number.isNaN,
+      parseInt: Number.parseInt,
+      parseFloat: Number.parseFloat
+    };
+
+    // Create function with proper context
+    const keys = Object.keys(context);
+    const values = Object.values(context);
+    
     // eslint-disable-next-line no-new-func
-    return Function('"use strict"; return (' + expr + ')')();
+    const fn = Function(...keys, '"use strict"; return (' + expr + ')');
+    return fn(...values);
   };
 
   const equals = () => {
     const exprRaw = state.result;
-    if (!exprRaw) return;
+    if (!exprRaw || exprRaw === '0') return;
 
     try {
       const expr = preprocess(exprRaw);
+      
+      // Check for division by zero patterns before evaluation
+      if (/\/\s*0(?![.\d])/.test(expr)) {
+        throw new Error('Division by zero');
+      }
+
       const val = safeEval(expr);
-      const out = Number.isFinite(val) ? +parseFloat(val.toFixed(12)) : NaN;
+      
+      // Enhanced validation for the result
+      let out: number;
+      if (!Number.isFinite(val)) {
+        if (val === Infinity) throw new Error('Result is infinity');
+        if (val === -Infinity) throw new Error('Result is negative infinity');
+        throw new Error('Invalid result');
+      } else {
+        // Round to 12 decimal places to avoid floating point precision issues
+        out = +parseFloat(val.toFixed(12));
+        
+        // Check if the result is too large or too small to display
+        if (Math.abs(out) > 1e15) throw new Error('Result too large');
+        if (Math.abs(out) < 1e-15 && out !== 0) out = 0; // Treat very small numbers as zero
+      }
 
       setState((prev) => ({
         ...prev,
         history: exprRaw + ' =',
-        result: isNaN(out) ? 'Error' : String(out),
-        lastAnswer: isNaN(out) ? prev.lastAnswer : out,
+        result: String(out),
+        lastAnswer: out,
       }));
 
-      if (isNaN(out)) {
-        setTimeout(() => setResult('0'), 900);
-      }
+      // Trigger success animation
+      setIsSuccess(true);
+      setTimeout(() => setIsSuccess(false), 800);
+
     } catch (e) {
-      setState((prev) => ({ ...prev, history: '', result: 'Error' }));
-      setTimeout(() => setResult('0'), 900);
+      const errorMessage = e instanceof Error ? e.message : 'Calculation error';
+      setState((prev) => ({ 
+        ...prev, 
+        history: exprRaw + ' = Error', 
+        result: 'Error'
+      }));
+      
+      // Log error for debugging
+      console.warn('Calculator error:', errorMessage);
+      
+      setTimeout(() => setResult('0'), 1500);
     }
   };
 
@@ -231,7 +411,7 @@ export default function Calculator() {
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.calculator} role="application" aria-label="Calculator">
+      <div className={`${styles.calculator} ${isSuccess ? styles.success : ''}`} role="application" aria-label="Calculator">
         <div className={styles.toolbar}>
           <div className={styles.seg} role="tablist" aria-label="Mode">
             <button
@@ -281,7 +461,9 @@ export default function Calculator() {
 
         <div className={styles.display} aria-live="polite">
           <div className={styles.history}>{state.history}</div>
-          <div className={styles.result}>{state.result}</div>
+          <div className={`${styles.result} ${state.result === 'Error' ? styles.error : ''}`}>
+            {state.result}
+          </div>
         </div>
 
         {mode === 'basic' && (

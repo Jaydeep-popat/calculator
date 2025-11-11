@@ -27,16 +27,66 @@ body {
   font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial,
     sans-serif;
   color: var(--text);
-  background: radial-gradient(
+  background: 
+    radial-gradient(
       1200px 800px at 20% 10%,
-      #1f2a44 0%,
+      rgba(31, 42, 68, 0.8) 0%,
       transparent 60%
     ),
-    radial-gradient(1000px 700px at 80% 90%, #1a3348 0%, transparent 60%),
+    radial-gradient(
+      1000px 700px at 80% 90%, 
+      rgba(26, 51, 72, 0.8) 0%, 
+      transparent 60%
+    ),
     linear-gradient(120deg, var(--bg1), var(--bg2));
+  background-attachment: fixed;
+  background-size: 120% 120%;
   display: grid;
   place-items: center;
   padding: 24px;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  animation: backgroundShift 20s ease-in-out infinite;
+}
+
+@keyframes backgroundShift {
+  0%, 100% {
+    background-position: 0% 50%, 100% 50%, center;
+  }
+  50% {
+    background-position: 100% 50%, 0% 50%, center;
+  }
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 25% 25%, rgba(167, 139, 250, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(34, 211, 238, 0.03) 0%, transparent 50%);
+  animation: floatingOrbs 15s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes floatingOrbs {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.3;
+  }
+  33% {
+    transform: translateY(-20px) rotate(120deg);
+    opacity: 0.5;
+  }
+  66% {
+    transform: translateY(10px) rotate(240deg);
+    opacity: 0.4;
+  }
 }
 
 @media (prefers-color-scheme: light) {
