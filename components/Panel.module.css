@@ -1,0 +1,76 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 16px;
+}
+
+.grid.sci {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.grid button {
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  border: 0;
+  border-radius: 16px;
+  padding: 14px 0;
+  font-size: 1.05rem;
+  color: var(--text);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.01)
+  );
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: transform 0.06s ease, filter 0.2s ease, background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.grid button:active {
+  transform: translateY(1px) scale(0.995);
+}
+
+.grid button:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.op {
+  color: var(--accent);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.danger {
+  color: var(--danger);
+}
+
+.equal {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #0b1020;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border-color: transparent;
+  box-shadow: 0 10px 24px rgba(167, 139, 250, 0.35),
+    0 6px 16px rgba(34, 211, 238, 0.28);
+}
+
+.span2 {
+  grid-column: span 2;
+}
+
+.span3 {
+  grid-column: span 3;
+}
+
+@media (prefers-color-scheme: light) {
+  .equal {
+    color: #05222a;
+  }
+}

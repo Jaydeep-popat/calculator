@@ -1,0 +1,60 @@
+:root {
+  --bg1: #0f172a; /* slate-900 */
+  --bg2: #1e293b; /* slate-800 */
+  --panel: #0b1224aa; /* translucent card */
+  --text: #e5e7eb; /* zinc-200 */
+  --muted: #94a3b8; /* slate-400 */
+  --accent: #a78bfa; /* violet-400 */
+  --accent-2: #22d3ee; /* cyan-400 */
+  --danger: #fda4af; /* rose-300 */
+  --ok: #bef264; /* lime-300 */
+  --shadow: 0 20px 40px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --radius: 22px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial,
+    sans-serif;
+  color: var(--text);
+  background: radial-gradient(
+      1200px 800px at 20% 10%,
+      #1f2a44 0%,
+      transparent 60%
+    ),
+    radial-gradient(1000px 700px at 80% 90%, #1a3348 0%, transparent 60%),
+    linear-gradient(120deg, var(--bg1), var(--bg2));
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --text: #0b1224;
+    --muted: #475569;
+  }
+  body {
+    background: radial-gradient(
+        1200px 800px at 20% 10%,
+        #dbeafe 0%,
+        transparent 60%
+      ),
+      radial-gradient(1000px 700px at 80% 90%, #e0e7ff 0%, transparent 60%),
+      linear-gradient(120deg, #f6f9ff, #eaf1ff);
+  }
+}
+
+.hidden {
+  display: none !important;
+}
